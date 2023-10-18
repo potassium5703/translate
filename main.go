@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"io"
 	"os"
 
@@ -14,28 +15,42 @@ import (
 
 func main() {
 	english := flag.Bool("en", false, "translate from english")
+
 	var source, into string = "ru", "en"
-	var text interface{}
+	var text string
 	var err error
 
 	flag.Parse()
+	if *english {
+		source, into = into, source
+	}
+
 	Args := flag.Args()
 	if len(Args) > 0 {
 		text = strings.Join(Args[:], " ")
 	} else {
-		text, err = io.ReadAll(os.Stdin)
-		if err != nil {
-			panic(err)
+		r := bufio.NewReader(os.Stdin)
+		for {
+			text, err = r.ReadString('\n')
+			if err != nil {
+				switch err {
+				case io.EOF:
+					return
+				default:
+					panic(err)
+				}
+			}
+			if len(text) == 0 {
+				os.Exit(1)
+			}
+			result, err := gt.Translate(text, source, into)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(result)
 		}
-		if len(text.([]byte)) == 0 {
-			os.Exit(1)
-		}
-		text = string(text.([]byte)) // looks awful but it works
 	}
-	if *english {
-		source, into = into, source
-	}
-	result, err := gt.Translate(text.(string), source, into)
+	result, err := gt.Translate(text, source, into)
 	if err != nil {
 		panic(err)
 	}
