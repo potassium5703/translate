@@ -40,8 +40,9 @@ func main() {
 					panic(err)
 				}
 			}
+			text = strings.Trim(text, "\n")
 			if len(text) == 0 {
-				os.Exit(1)
+				continue
 			}
 			result, err := gt.Translate(text, source, into)
 			if err != nil {
